@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/mervanerdem/PropertyFinderSaleAPI/Services"
 	"log"
+	"time"
 )
 
 type MStorage struct {
@@ -44,15 +45,15 @@ func (m *MStorage) ListProducts() (*[]Services.Product, error) {
 	return &products, nil
 }
 
-// ShowBasket Show Cart
+// Show Cart
 func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, int, error) {
 	var basket Services.Basket
 	var basketProduct []Services.Basket
 	var totalPay int
-	res, err := m.client.Query("Select baskets.idBasket,baskets.idCustomer, products.idProduct, products.productName,products.productStock,products.productPrice,products.productVat,baskets.proNum "+
+	res, err := m.client.Query("Select baskets.idBasket,baskets.idCustomer, products.idProduct, products.productName,products.productStock, "+
+		"products.productPrice,products.productVat,baskets.proNum, baskets.productTotalPrice "+
 		"From baskets "+
 		"INNER JOIN products ON baskets.idProduct = products.idProduct "+
-		"INNER JOIN customers ON customers.idCustomer = baskets.idCustomer "+
 		"Where baskets.idCustomer = ?", idCustomer)
 	if err != nil {
 		log.Fatal(err)
@@ -60,7 +61,8 @@ func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, int, error) {
 
 	for res.Next() {
 
-		err := res.Scan(&basket.BasketID, &basket.CustomerID, &basket.Product.ProductID, &basket.Product.ProductName, &basket.Product.ProductStock, &basket.Product.ProductPrice, &basket.Product.ProductVAT, &basket.ProductNum)
+		err := res.Scan(&basket.BasketID, &basket.CustomerID, &basket.Product.ProductID, &basket.Product.ProductName, &basket.Product.ProductStock,
+			&basket.Product.ProductPrice, &basket.Product.ProductVAT, &basket.ProductNum, &basket.ProductTotalPrice)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -69,11 +71,13 @@ func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, int, error) {
 
 		basketProduct = append(basketProduct, basket)
 	}
-
-	return &basketProduct, totalPay, nil
+	if basket.CustomerID <= 0 {
+		err = fmt.Errorf("this customer does not have any thing in her/him basket")
+	}
+	return &basketProduct, totalPay, err
 }
 
-// IsHaveProductNumber in rows
+// read from baskets table
 func (m *MStorage) IsHaveProductNumber(idCustomer, idProduct int) (bool, int, error) {
 	var basket Services.Basket
 	haveProduct := false
@@ -97,9 +101,41 @@ func (m *MStorage) IsHaveProductNumber(idCustomer, idProduct int) (bool, int, er
 	return haveProduct, basket.ProductNum, nil
 }
 
-// AddBasket add to cart as new
-func (m *MStorage) AddBasket(idCustomer, idProduct int, productNum int) error {
-	_, err := m.client.Query("insert into baskets (idCustomer, idProduct, proNum) values (?, ?, ?)", idCustomer, idProduct, productNum)
+// read from products table
+func (m *MStorage) IsHaveProductID(idProduct int) (int, error) {
+	var product Services.Product
+	haveProductID := false
+	res, err := m.client.Query("select idProduct from products")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for res.Next() {
+		err := res.Scan(&product.ProductID)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if product.ProductID == idProduct {
+			haveProductID = true
+		}
+	}
+	if haveProductID {
+		res, err = m.client.Query("select productPrice from products Where idProduct = ?", idProduct)
+		for res.Next() {
+			err := res.Scan(&product.ProductPrice)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		return product.ProductPrice, nil
+	} else {
+		return 0, fmt.Errorf("the product id does not exist")
+	}
+
+}
+
+// add to cart as new
+func (m *MStorage) AddBasket(idCustomer, idProduct, productNum, productTotalPrice int) error {
+	_, err := m.client.Query("insert into baskets (idCustomer, idProduct, proNum,productTotalPrice) values (?, ?, ?,?)", idCustomer, idProduct, productNum, productTotalPrice)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -120,8 +156,9 @@ func (m *MStorage) AddCartItem(idCustomer, idProduct, productNum int) error {
 			log.Fatal(err)
 		}
 	}
-	productNum = productNum + basket.ProductNum
-	_, err = m.client.Query("UPDATE baskets SET proNum = ? WHERE idProduct = ? and idcustomer = ?", productNum, idProduct, idCustomer)
+	productTotalPrice := productNum * basket.ProductPrice
+
+	_, err = m.client.Query("UPDATE baskets SET proNum = ?, productTotalPrice = ? WHERE idProduct = ? and idcustomer = ?", productNum, productTotalPrice, idProduct, idCustomer)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -131,7 +168,7 @@ func (m *MStorage) AddCartItem(idCustomer, idProduct, productNum int) error {
 
 // DeleteRow delete cart Row
 func (m *MStorage) DeleteRow(idCustomer, idProduct int) error {
-	_, err := m.client.Query("DELETE FROM baskets where idProduct = ? and idCustomer = ?", idCustomer, idProduct)
+	_, err := m.client.Query("DELETE FROM baskets where idProduct = ? and idCustomer = ?", idProduct, idCustomer)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -166,4 +203,31 @@ func (m *MStorage) DeleteCartItem(idCustomer, idProduct, productNum int) error {
 	}
 
 	return err
+}
+
+func (m *MStorage) Sale(idCustomer int) error {
+	var basket Services.Basket
+	res, err := m.client.Query("select idCustomer,idProduct,proNum,productTotalPrice from baskets where idCustomer = ?", idCustomer)
+	if err != nil {
+		log.Fatal(err)
+	}
+	currentTime := time.Now()
+	saleDate := currentTime.Format("2022-01-02")
+	for res.Next() {
+
+		err := res.Scan(&basket.CustomerID, &basket.Product.ProductID, &basket.ProductNum, &basket.ProductTotalPrice)
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = m.client.Query("insert into sales (idCustomer, idProduct, proNum,productTotalPrice,saleDate) "+
+			"values (?, ?, ?,?,?);", basket.CustomerID, basket.Product.ProductID, basket.ProductNum, basket.ProductTotalPrice, saleDate)
+		if err != nil {
+			log.Fatal(err)
+		}
+		_, err = m.client.Query("DELETE FROM baskets where idCustomer = ?", idCustomer)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return nil
 }

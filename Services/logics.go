@@ -12,17 +12,20 @@ type Basket struct {
 	BasketID   int
 	CustomerID int
 	Product
-	ProductNum int
+	ProductNum        int
+	ProductTotalPrice int
 }
 
 type PStorage interface {
 	ListProducts() (*[]Product, error)
 	ShowBasket(id int) (*[]Basket, int, error)
 	IsHaveProductNumber(idCustomer, productID int) (bool, int, error)
-	AddBasket(idCustomer, idProduct, productNum int) error
+	IsHaveProductID(idProduct int) (int, error)
+	AddBasket(idCustomer, idProduct, productNum, productTotalPrice int) error
 	AddCartItem(idCustomer, idProduct, productNum int) error
 	DeleteRow(idCustomer, idProduct int) error
 	DeleteCartItem(idCustomer, idProduct, productNum int) error
+	Sale(idCustomer int) error
 }
 
 func (p *Product) List() Product {
