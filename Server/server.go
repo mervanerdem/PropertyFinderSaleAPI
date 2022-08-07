@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/mervanerdem/PropertyFinderSaleAPI/Services"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -94,7 +93,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 				return
 			}
 		} else {
-			productTotalPrice := productPrice * data.ProductNumber
+			productTotalPrice := productPrice * float64(data.ProductNumber)
 			err = storage.AddBasket(idCustomer, data.ProductID, data.ProductNumber, productTotalPrice)
 			if err != nil {
 				ctx.JSON(http.StatusNotFound, map[string]string{
@@ -153,8 +152,8 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-		if haveProductNum && (data.ProductNumber-pNum) > 0 {
-			log.Printf("birinci")
+
+		if haveProductNum && (pNum-data.ProductNumber) > 0 {
 			err = storage.DeleteCartItem(idCustomer, data.ProductID, data.ProductNumber)
 			if err != nil {
 				ctx.JSON(http.StatusNotFound, map[string]string{
@@ -173,12 +172,12 @@ func NewServer(storage Services.PStorage) http.Handler {
 		}
 
 		ctx.JSON(http.StatusOK, map[string]string{
-			"Message": "Successful",
+			"Delete": "Successful",
 		})
 		ShowBasket(ctx, idCustomer, storage)
 	})
 
-	//sale //düzenlenecek
+	//sale
 	router.POST("/api/:idCustomer/Sale", func(ctx *gin.Context) {
 		id_str := ctx.Param("idCustomer")
 		idCustomer, err := strconv.Atoi(id_str)

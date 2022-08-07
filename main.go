@@ -9,9 +9,10 @@ import (
 
 func main() {
 
-	storage, _, err := SqlConnection.NewMStorage("root:Mervan.1907@tcp(127.0.0.1:3306)/pfsale")
+	storage, db, err := SqlConnection.NewMStorage("propertyfinder:password@tcp(localhost:3306)/pfsale")
 	if err != nil {
 		panic("Configration is wrong")
 	}
+	defer db.Close()
 	log.Fatal(http.ListenAndServe("localhost:8080", Server.NewServer(storage)))
 }
