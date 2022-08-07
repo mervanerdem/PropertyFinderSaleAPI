@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/mervanerdem/PropertyFinderSaleAPI/Services"
 	"log"
+	"sort"
 	"time"
 )
 
@@ -105,7 +106,7 @@ func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, float64, erro
 	log.Println("campaign1:", campaignTotal1)
 	log.Println("campaign2:", campaignTotal2)
 	log.Println("campaign3:", campaignTotal3)
-	log.Println("final:", campaignTotal3)
+	log.Println("final:", finalCampaign)
 
 	if finalCampaign == campaignTotal3 {
 		//campaign 3
@@ -365,18 +366,17 @@ func errHandle(err error, errorName string) {
 func compareCampaign(campaignTotal1, campaignTotal2, campaignTotal3 float64) float64 {
 	var finalCampaign float64
 
-	e := make([]float64, 0)
-	e = append(e, campaignTotal1)
-	e = append(e, campaignTotal2)
-	e = append(e, campaignTotal3)
+	x := make([]float64, 0)
+	x = append(x, campaignTotal1)
+	x = append(x, campaignTotal2)
+	x = append(x, campaignTotal3)
+	sort.Float64s(x)
+
 	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			if (e[i] < e[j] && e[i] > 0) || (e[i] == e[j] && e[i] != 0) {
-				finalCampaign = e[i]
-				break
-			}
+		if x[i] != 0 {
+			finalCampaign = x[i]
+			break
 		}
 	}
-
 	return finalCampaign
 }
