@@ -21,8 +21,8 @@ type Basket struct {
 type PStorage interface {
 	ListProducts() (*[]Product, error)
 	ShowBasket(id int) (*[]Basket, float64, error)
-	IsHaveProductNumber(idCustomer, productID int) (bool, int, error)
-	IsHaveProductID(idProduct int) (float64, error) //isim değiştir
+	HaveProductNumber(idCustomer, productID int) (bool, int, error)
+	FindProductPrice(idProduct int) (float64, error)
 	AddBasket(idCustomer, idProduct, productNum int, productTotalPrice float64) error
 	AddCartItem(idCustomer, idProduct, productNum int) error
 	DeleteRow(idCustomer, idProduct int) error
@@ -47,7 +47,7 @@ func (basket *Basket) Campaign1(campaignOrderNumber int) float64 {
 
 // campaign 2 = same product
 func (basket *Basket) Campaign2() float64 {
-	
+
 	var campaignTotal2 float64
 
 	if basket.ProductNum > 3 {
@@ -66,6 +66,8 @@ func (basket *Basket) Campaign3(lastSales float64) float64 {
 	var campaignTotal3 float64
 	if lastSales > LimitMonthShop {
 		campaignTotal3 = basket.ProductPrice * float64(basket.ProductNum) * 0.9
+	} else {
+		campaignTotal3 = basket.ProductPrice * float64(basket.ProductNum)
 	}
 
 	return campaignTotal3

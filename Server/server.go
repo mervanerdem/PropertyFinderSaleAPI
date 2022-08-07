@@ -67,7 +67,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 			return
 		}
 
-		productPrice, err := storage.IsHaveProductID(data.ProductID)
+		productPrice, err := storage.FindProductPrice(data.ProductID)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, map[string]string{
 				"error": err.Error(),
@@ -81,7 +81,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-		haveProductNum, pNum, err := storage.IsHaveProductNumber(idCustomer, data.ProductID)
+		haveProductNum, pNum, err := storage.HaveProductNumber(idCustomer, data.ProductID)
 
 		if haveProductNum {
 			pNum = pNum + data.ProductNumber
@@ -130,7 +130,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 		}
 
-		_, err = storage.IsHaveProductID(data.ProductID)
+		_, err = storage.FindProductPrice(data.ProductID)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, map[string]string{
 				"error": err.Error(),
@@ -145,7 +145,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 			return
 		}
 
-		haveProductNum, pNum, err := storage.IsHaveProductNumber(idCustomer, data.ProductID)
+		haveProductNum, pNum, err := storage.HaveProductNumber(idCustomer, data.ProductID)
 		if err != nil {
 			ctx.JSON(http.StatusNotFound, map[string]string{
 				"error": err.Error(),

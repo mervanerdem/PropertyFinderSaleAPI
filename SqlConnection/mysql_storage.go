@@ -190,7 +190,7 @@ func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, float64, erro
 }
 
 // read from baskets table
-func (m *MStorage) IsHaveProductNumber(idCustomer, idProduct int) (bool, int, error) {
+func (m *MStorage) HaveProductNumber(idCustomer, idProduct int) (bool, int, error) {
 	var basket Services.Basket
 	haveProduct := false
 	checkProduct, err := m.client.Query("Select proNum From baskets Where idProduct = ? and idcustomer = ?", idProduct, idCustomer)
@@ -209,7 +209,7 @@ func (m *MStorage) IsHaveProductNumber(idCustomer, idProduct int) (bool, int, er
 }
 
 // read from products table
-func (m *MStorage) IsHaveProductID(idProduct int) (float64, error) {
+func (m *MStorage) FindProductPrice(idProduct int) (float64, error) {
 	var product Services.Product
 	haveProductID := false
 	checkID, err := m.client.Query("select idProduct from products")
@@ -332,7 +332,7 @@ func (m *MStorage) Sale(idCustomer int) error {
 		errHandle(err, "sale find product total price scan")
 	}
 
-	if sumOrder > Services.LimitMonthShop {
+	if sumOrder > Services.Limit4sales {
 		campaignOrderNumber++
 	}
 	if campaignOrderNumber == 4 {
