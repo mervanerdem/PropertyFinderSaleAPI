@@ -314,9 +314,6 @@ func (m *MStorage) Sale(idCustomer int) (*[]Services.Sale, float64, error) {
 	var lastSaleDate string
 	var totalPay float64
 
-	saleFind, err := m.client.Query("select idCustomer,idProduct,proNum,productTotalPrice from baskets where idCustomer = ?", idCustomer)
-	errHandle(err, "sale find basket query")
-
 	rowCheck, err := m.client.Exec("select campaignOrderNumber from sales where idCustomer = ? ORDER BY saleDate DESC LIMIT 1;", idCustomer)
 	errHandle(err, "sale campaign order number is have any row")
 	affectRow, err := rowCheck.RowsAffected()
@@ -346,16 +343,25 @@ func (m *MStorage) Sale(idCustomer int) (*[]Services.Sale, float64, error) {
 	currentTime := time.Now()
 	saleDate := currentTime.Format("2006.01.02 15:04:05")
 
+	saleFind, err := m.client.Query("select idCustomer,idProduct,proNum,productTotalPrice from baskets where idCustomer = ?", idCustomer)
+	errHandle(err, "sale find basket query")
+
 	for saleFind.Next() {
 
 		err := saleFind.Scan(&basket.CustomerID, &basket.Product.ProductID, &basket.ProductNum, &basket.ProductTotalPrice)
 		errHandle(err, "sale find basket ")
+		log.Println("customer:", idCustomer, "basketcustomer:", basket.CustomerID)
+
 		_, err = m.client.Query("insert into sales (idCustomer, idProduct, proNum,productTotalPrice,saleDate,campaignOrderNumber) "+
 			"values (?, ?, ?,?,?,?);", basket.CustomerID, basket.Product.ProductID, basket.ProductNum, basket.ProductTotalPrice, saleDate, campaignOrderNumber)
 		errHandle(err, "insert sales data query")
 		_, err = m.client.Query("DELETE FROM baskets where idCustomer = ?", idCustomer)
 		errHandle(err, "delete sales data from basket")
 
+	}
+
+	if basket.CustomerID != idCustomer {
+		return nil, 0.0, fmt.Errorf("this customer does not have any product in her or him basket")
 	}
 
 	showSale, err := m.client.Query("SELECT sales.idCustomer,sales.idProduct,products.productName,products.productVat, "+
@@ -374,7 +380,7 @@ func (m *MStorage) Sale(idCustomer int) (*[]Services.Sale, float64, error) {
 		totalPay = totalPay + sale.ProductTotalPrice
 	}
 
-	return &saleProduct, totalPay, nil
+	return &saleProduct, totalPay, err
 }
 
 // Handle SQL Errors
