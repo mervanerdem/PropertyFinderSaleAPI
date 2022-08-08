@@ -380,15 +380,10 @@ func errHandle(err error, errorName string) {
 
 func compareCampaign(campaignTotal1, campaignTotal2, campaignTotal3 float64) float64 {
 	var finalCampaign float64
-
-	x := make([]float64, 0)
-	x = append(x, campaignTotal1)
-	x = append(x, campaignTotal2)
-	x = append(x, campaignTotal3)
+	x := []float64{campaignTotal1, campaignTotal2, campaignTotal3}
 	sort.Float64s(x)
-
 	for i := 0; i < 3; i++ {
-		if x[i] != 0 {
+		if x[i] >= 0 {
 			finalCampaign = x[i]
 			break
 		}

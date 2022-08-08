@@ -56,9 +56,7 @@ func (basket *Basket) Campaign1(campaignOrderNumber int) float64 {
 
 // campaign 2 = same product
 func (basket *Basket) Campaign2() float64 {
-
 	var campaignTotal2 float64
-
 	if basket.ProductNum > 3 {
 		campaignTotal2 = 3 * basket.ProductPrice
 		b := (float64(basket.ProductNum) - 3) * basket.ProductPrice
@@ -66,7 +64,6 @@ func (basket *Basket) Campaign2() float64 {
 	} else {
 		campaignTotal2 = basket.ProductPrice * float64(basket.ProductNum)
 	}
-
 	return campaignTotal2
 }
 
@@ -78,6 +75,5 @@ func (basket *Basket) Campaign3(lastSales float64) float64 {
 	} else {
 		campaignTotal3 = basket.ProductPrice * float64(basket.ProductNum)
 	}
-
 	return campaignTotal3
 }

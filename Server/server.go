@@ -1,7 +1,6 @@
 package Server
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/mervanerdem/PropertyFinderSaleAPI/Services"
 	"net/http"
@@ -12,7 +11,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 	router := gin.New()
 	//get list of products
 	router.GET("/api/products", func(ctx *gin.Context) {
-
 		products, err := storage.ListProducts()
 		if err != nil {
 			ctx.JSON(http.StatusNotFound, map[string]string{
@@ -20,17 +18,10 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-		ctx.JSON(http.StatusOK, map[string]string{
+		ctx.JSON(http.StatusOK, map[string]any{
 			"Product List": "Successful",
+			"Products":     products,
 		})
-		jsonProduct, err := json.Marshal(*products)
-		_, err = ctx.Writer.Write(jsonProduct)
-		if err != nil {
-			ctx.JSON(http.StatusServiceUnavailable, map[string]string{
-				"error": err.Error(),
-			})
-		}
-
 	})
 
 	//get list of basket
@@ -43,7 +34,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-
 		ShowBasket(ctx, idCustomer, storage, 200)
 	})
 
@@ -57,7 +47,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-
 		var data = struct {
 			ProductID     int
 			ProductNumber int
@@ -69,7 +58,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-
 		productPrice, err := storage.FindProductPrice(data.ProductID)
 		if err != nil {
 			ctx.JSON(http.StatusInsufficientStorage, map[string]string{
@@ -77,7 +65,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-
 		if data.ProductNumber <= 0 {
 			ctx.JSON(http.StatusBadRequest, map[string]any{
 				"ProductNumber": "Amount Unsuitable",
@@ -91,7 +78,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-
 		if haveProductNum {
 			pNum = pNum + data.ProductNumber
 			err = storage.AddCartItem(idCustomer, data.ProductID, pNum)
@@ -124,7 +110,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-
 		var data = struct {
 			ProductID     int
 			ProductNumber int
@@ -135,7 +120,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 				"error": err.Error(),
 			})
 		}
-
 		_, err = storage.FindProductPrice(data.ProductID)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, map[string]string{
@@ -143,14 +127,12 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-
 		if data.ProductNumber <= 0 {
 			ctx.JSON(http.StatusBadRequest, map[string]any{
 				"ProductNumber": "Amount Unsuitable",
 			})
 			return
 		}
-
 		haveProductNum, pNum, err := storage.HaveProductNumber(idCustomer, data.ProductID)
 		if err != nil {
 			ctx.JSON(http.StatusNotFound, map[string]string{
@@ -158,7 +140,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-
 		if haveProductNum && (pNum-data.ProductNumber) > 0 {
 			err = storage.DeleteCartItem(idCustomer, data.ProductID, data.ProductNumber)
 			if err != nil {
@@ -196,21 +177,11 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-		ctx.JSON(http.StatusCreated, map[string]string{
-			"Sale": "Successful",
-		})
-		jsonProduct, err := json.Marshal(*saleShow)
-		_, err = ctx.Writer.Write(jsonProduct)
-		if err != nil {
-			ctx.JSON(http.StatusNotFound, map[string]string{
-				"error": err.Error(),
-			})
-			return
-		}
 		ctx.JSON(http.StatusCreated, map[string]any{
+			"Message":   "Successful",
+			"Sale":      saleShow,
 			"Total Pay": totalPay,
 		})
-
 	})
 
 	return router
@@ -218,18 +189,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 
 // show cart
 func ShowBasket(ctx *gin.Context, idCustomer int, storage Services.PStorage, status int) {
-	basket2, totalPay, err := storage.ShowBasket(idCustomer)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, map[string]string{
-			"error": err.Error(),
-		})
-		return
-	}
-	ctx.JSON(status, map[string]string{
-		"Message": "Successful",
-	})
-	jsonProduct, err := json.Marshal(*basket2)
-	_, err = ctx.Writer.Write(jsonProduct)
+	basket, totalPay, err := storage.ShowBasket(idCustomer)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, map[string]string{
 			"error": err.Error(),
@@ -237,6 +197,8 @@ func ShowBasket(ctx *gin.Context, idCustomer int, storage Services.PStorage, sta
 		return
 	}
 	ctx.JSON(status, map[string]any{
+		"Message":   "Successful",
+		"Basket":    basket,
 		"Total Pay": totalPay,
 	})
 }

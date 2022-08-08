@@ -34,8 +34,8 @@ an order is completed it is fully paid.
 
 ### Some business rules
 
-#### 1. Products always have price and VAT (Value Added Tax, or KDV). VAT might be 
-different for different products. Typical VAT percentage is %1, %8 and %18. So use 
+#### 1. Products always have price and VAT (Value Added Tax, or KDV). 
+VAT might be different for different products. Typical VAT percentage is %1, %8 and %18. So use 
 these values for your products.
 
 #### 2. There might be discount in following situations:
@@ -96,27 +96,34 @@ and URL is:
 The response is be like
 ```JSON
 {
-    "Product List": "Successful"
-}[
+  "Product List": "Successful",
+  "Products": [
     {
-        "ProductID": 1,
-        "ProductName": "Bread",
-        "ProductPrice": 4,
-        "ProductVAT": 1
+      "ProductID": 1,
+      "ProductName": "Bread",
+      "ProductPrice": 4,
+      "ProductVAT": 1
     },
     {
-        "ProductID": 2,
-        "ProductName": "Chicken",
-        "ProductPrice": 45,
-        "ProductVAT": 1
+      "ProductID": 2,
+      "ProductName": "Chicken",
+      "ProductPrice": 45,
+      "ProductVAT": 1
     },
     {
-        "ProductID": 3,
-        "ProductName": "cheese",
-        "ProductPrice": 18,
-        "ProductVAT": 1
+      "ProductID": 3,
+      "ProductName": "cheese",
+      "ProductPrice": 18,
+      "ProductVAT": 1
+    },
+    {
+      "ProductID": 4,
+      "ProductName": "olives",
+      "ProductPrice": 30,
+      "ProductVAT": 1
     }
-]
+  ]
+}
 ```
 ###  Add To Cart
 
@@ -140,20 +147,20 @@ The body type has to be like:
 The response is be like
 ```JSON
 {
-    "Message": "Successful"
-}[
+  "Basket": [
     {
-        "BasketID": 111,
-        "CustomerID": 1,
-        "ProductID": 4,
-        "ProductName": "olives",
-        "ProductPrice": 30,
-        "ProductVAT": 1,
-        "ProductNum": 3,
-        "ProductTotalPrice": 81
+      "BasketID": 113,
+      "CustomerID": 1,
+      "ProductID": 4,
+      "ProductName": "olives",
+      "ProductPrice": 30,
+      "ProductVAT": 1,
+      "ProductNum": 3,
+      "ProductTotalPrice": 81
     }
-]{
-    "Total Pay": 81
+  ],
+  "Message": "Successful",
+  "Total Pay": 81
 }
 ```
 
@@ -170,20 +177,20 @@ And the customer id has to be assigned.
 The response is be like
 ```JSON
 {
-    "Message": "Successful"
-}[
+  "Basket": [
     {
-        "BasketID": 111,
-        "CustomerID": 1,
-        "ProductID": 4,
-        "ProductName": "olives",
-        "ProductPrice": 30,
-        "ProductVAT": 1,
-        "ProductNum": 3,
-        "ProductTotalPrice": 81
+      "BasketID": 113,
+      "CustomerID": 1,
+      "ProductID": 4,
+      "ProductName": "olives",
+      "ProductPrice": 30,
+      "ProductVAT": 1,
+      "ProductNum": 3,
+      "ProductTotalPrice": 81
     }
-]{
-    "Total Pay": 81
+  ],
+  "Message": "Successful",
+  "Total Pay": 81
 }
 ```
 
@@ -209,20 +216,20 @@ The body type has to be like:
 The response is be like
 ```JSON
 {
-    "Message": "Successful"
-}[
+  "Basket": [
     {
-        "BasketID": 111,
-        "CustomerID": 1,
-        "ProductID": 4,
-        "ProductName": "olives",
-        "ProductPrice": 30,
-        "ProductVAT": 1,
-        "ProductNum": 2,
-        "ProductTotalPrice": 54
+      "BasketID": 112,
+      "CustomerID": 1,
+      "ProductID": 4,
+      "ProductName": "olives",
+      "ProductPrice": 30,
+      "ProductVAT": 1,
+      "ProductNum": 2,
+      "ProductTotalPrice": 54
     }
-]{
-    "Total Pay": 54
+  ],
+  "Message": "Successful",
+  "Total Pay": 54
 }
 ```
 
@@ -241,21 +248,21 @@ No need body.
 The response is be like
 ```JSON
 {
-    "Sale": "Successful"
-}[
+  "Message": "Successful",
+  "Sale": [
     {
-        "CustomerID": 1,
-        "ProductID": 4,
-        "ProductName": "olives",
-        "ProductPrice": 30,
-        "ProductVAT": 1,
-        "ProductNum": 2,
-        "ProductTotalPrice": 54,
-        "SaleDate": "2022-08-08 20:10:07",
-        "CampaignOrderNum": 2
+      "CustomerID": 1,
+      "ProductID": 4,
+      "ProductName": "olives",
+      "ProductPrice": 30,
+      "ProductVAT": 1,
+      "ProductNum": 5,
+      "ProductTotalPrice": 135,
+      "SaleDate": "2022-08-08 22:02:21",
+      "CampaignOrderNum": 2
     }
-]{
-    "Total Pay": 54
+  ],
+  "Total Pay": 135
 }
 ```
 
@@ -264,21 +271,6 @@ The response is be like
 Thanks to [Patika.dev](https://www.patika.dev/) for all courses and bootcamp.
 
 Thanks to the bootcamp sponsor [Property Finder](https://www.propertyfinder.ae/) for all the attention and instructions.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
