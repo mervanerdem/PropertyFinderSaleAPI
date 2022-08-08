@@ -23,7 +23,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 		jsonProduct, err := json.Marshal(*products)
 		_, err = ctx.Writer.Write(jsonProduct)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, map[string]string{
+			ctx.JSON(http.StatusServiceUnavailable, map[string]string{
 				"error": err.Error(),
 			})
 		}
@@ -34,7 +34,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 	router.GET("/api/:idCustomer/basket", func(ctx *gin.Context) {
 		id_str := ctx.Param("idCustomer")
 		idCustomer, err := strconv.Atoi(id_str)
-		if err != nil {
+		if err != nil || idCustomer <= 0 {
 			ctx.JSON(http.StatusBadRequest, map[string]string{
 				"error": "Unsuitable ID number",
 			})
@@ -48,7 +48,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 	router.POST("/api/:idCustomer/basket/add", func(ctx *gin.Context) {
 		id_str := ctx.Param("idCustomer")
 		idCustomer, err := strconv.Atoi(id_str)
-		if err != nil {
+		if err != nil || idCustomer <= 0 {
 			ctx.JSON(http.StatusBadRequest, map[string]string{
 				"error": "Unsuitable ID number",
 			})
@@ -69,7 +69,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 
 		productPrice, err := storage.FindProductPrice(data.ProductID)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, map[string]string{
+			ctx.JSON(http.StatusInsufficientStorage, map[string]string{
 				"error": err.Error(),
 			})
 			return
@@ -82,6 +82,12 @@ func NewServer(storage Services.PStorage) http.Handler {
 			return
 		}
 		haveProductNum, pNum, err := storage.HaveProductNumber(idCustomer, data.ProductID)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, map[string]string{
+				"error": err.Error(),
+			})
+			return
+		}
 
 		if haveProductNum {
 			pNum = pNum + data.ProductNumber
@@ -102,7 +108,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 				return
 			}
 		}
-		ctx.JSON(http.StatusOK, map[string]string{
+		ctx.JSON(http.StatusCreated, map[string]string{
 			"Message": "Successful",
 		})
 		ShowBasket(ctx, idCustomer, storage)
@@ -171,7 +177,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 			}
 		}
 
-		ctx.JSON(http.StatusOK, map[string]string{
+		ctx.JSON(http.StatusCreated, map[string]string{
 			"Delete": "Successful",
 		})
 		ShowBasket(ctx, idCustomer, storage)
@@ -194,7 +200,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-		ctx.JSON(http.StatusOK, map[string]string{
+		ctx.JSON(http.StatusCreated, map[string]string{
 			"Sale": "Successful",
 		})
 

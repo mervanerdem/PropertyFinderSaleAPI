@@ -229,7 +229,7 @@ func (m *MStorage) FindProductPrice(idProduct int) (float64, error) {
 			err := proPrice.Scan(&product.ProductPrice)
 			errHandle(err, "check product price from products, scan")
 		}
-		return product.ProductPrice, nil
+		return product.ProductPrice, err
 	} else {
 		return 0, fmt.Errorf("the product id does not exist")
 	}
@@ -352,6 +352,7 @@ func (m *MStorage) Sale(idCustomer int) error {
 		errHandle(err, "insert sales data query")
 		_, err = m.client.Query("DELETE FROM baskets where idCustomer = ?", idCustomer)
 		errHandle(err, "delete sales data from basket")
+
 	}
 	return nil
 }
@@ -359,7 +360,7 @@ func (m *MStorage) Sale(idCustomer int) error {
 // Handle SQL Errors
 func errHandle(err error, errorName string) {
 	if err != nil {
-		log.Fatal(errorName, "\n", err)
+		log.Println(errorName, "\n", err)
 	}
 }
 
