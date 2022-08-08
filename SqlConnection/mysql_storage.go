@@ -306,10 +306,13 @@ func (m *MStorage) DeleteCartItem(idCustomer, idProduct, productNum int) error {
 }
 
 // sale
-func (m *MStorage) Sale(idCustomer int) error {
+func (m *MStorage) Sale(idCustomer int) (*[]Services.Sale, float64, error) {
 	var sumOrder float64
 	var basket Services.Basket
+	var sale Services.Sale
+	var saleProduct []Services.Sale
 	var lastSaleDate string
+	var totalPay float64
 
 	saleFind, err := m.client.Query("select idCustomer,idProduct,proNum,productTotalPrice from baskets where idCustomer = ?", idCustomer)
 	errHandle(err, "sale find basket query")
@@ -354,7 +357,24 @@ func (m *MStorage) Sale(idCustomer int) error {
 		errHandle(err, "delete sales data from basket")
 
 	}
-	return nil
+
+	showSale, err := m.client.Query("SELECT sales.idCustomer,sales.idProduct,products.productName,products.productVat, "+
+		"sales.proNum, products.productPrice, sales.productTotalPrice,sales.saleDate,campaignOrderNumber "+
+		"FROM sales "+
+		"INNER JOIN products ON sales.idProduct = products.idProduct "+
+		"where saleDate = ? and idCustomer = ?", saleDate, idCustomer)
+	errHandle(err, "show sale list query")
+
+	for showSale.Next() {
+		err = showSale.Scan(&sale.CustomerID, &sale.ProductID, &sale.Product.ProductName, &sale.Product.ProductVAT,
+			&sale.ProductNum, &sale.Product.ProductPrice, &sale.ProductTotalPrice, &sale.SaleDate, &sale.CampaignOrderNum)
+		errHandle(err, "show sale list scan")
+
+		saleProduct = append(saleProduct, sale)
+		totalPay = totalPay + sale.ProductTotalPrice
+	}
+
+	return &saleProduct, totalPay, nil
 }
 
 // Handle SQL Errors

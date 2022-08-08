@@ -20,6 +20,9 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
+		ctx.JSON(http.StatusOK, map[string]string{
+			"Product List": "Successful",
+		})
 		jsonProduct, err := json.Marshal(*products)
 		_, err = ctx.Writer.Write(jsonProduct)
 		if err != nil {
@@ -108,9 +111,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 				return
 			}
 		}
-		ctx.JSON(http.StatusCreated, map[string]string{
-			"Message": "Successful",
-		})
 		ShowBasket(ctx, idCustomer, storage)
 	})
 
@@ -176,10 +176,6 @@ func NewServer(storage Services.PStorage) http.Handler {
 				return
 			}
 		}
-
-		ctx.JSON(http.StatusCreated, map[string]string{
-			"Delete": "Successful",
-		})
 		ShowBasket(ctx, idCustomer, storage)
 	})
 
@@ -193,7 +189,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 			})
 			return
 		}
-		err = storage.Sale(idCustomer)
+		saleShow, totalPay, err := storage.Sale(idCustomer)
 		if err != nil {
 			ctx.JSON(http.StatusNotFound, map[string]string{
 				"error": err.Error(),
@@ -202,6 +198,17 @@ func NewServer(storage Services.PStorage) http.Handler {
 		}
 		ctx.JSON(http.StatusCreated, map[string]string{
 			"Sale": "Successful",
+		})
+		jsonProduct, err := json.Marshal(*saleShow)
+		_, err = ctx.Writer.Write(jsonProduct)
+		if err != nil {
+			ctx.JSON(http.StatusNotFound, map[string]string{
+				"error": err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusCreated, map[string]any{
+			"Total Pay": totalPay,
 		})
 
 	})
@@ -218,6 +225,9 @@ func ShowBasket(ctx *gin.Context, idCustomer int, storage Services.PStorage) {
 		})
 		return
 	}
+	ctx.JSON(http.StatusCreated, map[string]string{
+		"Message": "Successful",
+	})
 	jsonProduct, err := json.Marshal(*basket2)
 	_, err = ctx.Writer.Write(jsonProduct)
 	if err != nil {

@@ -18,6 +18,15 @@ type Basket struct {
 	ProductTotalPrice float64
 }
 
+type Sale struct {
+	CustomerID int
+	Product
+	ProductNum        int
+	ProductTotalPrice float64
+	SaleDate          string
+	CampaignOrderNum  int
+}
+
 type PStorage interface {
 	ListProducts() (*[]Product, error)
 	ShowBasket(id int) (*[]Basket, float64, error)
@@ -27,7 +36,7 @@ type PStorage interface {
 	AddCartItem(idCustomer, idProduct, productNum int) error
 	DeleteRow(idCustomer, idProduct int) error
 	DeleteCartItem(idCustomer, idProduct, productNum int) error
-	Sale(idCustomer int) error
+	Sale(idCustomer int) (*[]Sale, float64, error)
 }
 
 // campaign 1 = check 4 sales and VAT
