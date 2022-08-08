@@ -1,7 +1,10 @@
-package Services
+package services
 
-const LimitMonthShop float64 = 5000
-const Limit4sales float64 = 500
+import (
+	"github.com/spf13/viper"
+	"log"
+	"strconv"
+)
 
 type Product struct {
 	ProductID    int
@@ -25,6 +28,38 @@ type Sale struct {
 	ProductTotalPrice float64
 	SaleDate          string
 	CampaignOrderNum  int
+}
+
+func viperConfigVariable(key string) string {
+	viper.AutomaticEnv()
+	viper.AddConfigPath(".")
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatalf("Error while reading config file %s", err)
+	}
+	value, ok := viper.Get(key).(string)
+	if !ok {
+		log.Fatalf("Invalid type assertion")
+	}
+	return value
+}
+
+func GetLimit4sales() int {
+	var get4Sales = viperConfigVariable("Limit4sales")
+	Limit4sales, err := strconv.Atoi(get4Sales)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return Limit4sales
+}
+
+func GetLimitMonthShop() int {
+	var getMonth = viperConfigVariable("LimitMonthShop")
+	LimitMonthShop, err := strconv.Atoi(getMonth)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return LimitMonthShop
 }
 
 type PStorage interface {
@@ -70,7 +105,8 @@ func (basket *Basket) Campaign2() float64 {
 // campaign3 = month subscriber
 func (basket *Basket) Campaign3(lastSales float64) float64 {
 	var campaignTotal3 float64
-	if lastSales > LimitMonthShop {
+	LimitMonthShop := GetLimitMonthShop()
+	if lastSales > float64(LimitMonthShop) {
 		campaignTotal3 = basket.ProductPrice * float64(basket.ProductNum) * 0.9
 	} else {
 		campaignTotal3 = basket.ProductPrice * float64(basket.ProductNum)

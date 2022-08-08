@@ -1,13 +1,13 @@
-package Server
+package server
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/mervanerdem/PropertyFinderSaleAPI/Services"
+	"github.com/mervanerdem/PropertyFinderSaleAPI/services"
 	"net/http"
 	"strconv"
 )
 
-func NewServer(storage Services.PStorage) http.Handler {
+func NewServer(storage services.PStorage) http.Handler {
 	router := gin.New()
 	//get list of products
 	router.GET("/api/products", func(ctx *gin.Context) {
@@ -188,7 +188,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 }
 
 // show cart
-func ShowBasket(ctx *gin.Context, idCustomer int, storage Services.PStorage, status int) {
+func ShowBasket(ctx *gin.Context, idCustomer int, storage services.PStorage, status int) {
 	basket, totalPay, err := storage.ShowBasket(idCustomer)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, map[string]string{

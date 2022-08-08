@@ -1,10 +1,10 @@
-package SqlConnection
+package sqlConnection
 
 import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/mervanerdem/PropertyFinderSaleAPI/Services"
+	"github.com/mervanerdem/PropertyFinderSaleAPI/services"
 	"log"
 	"sort"
 	"time"
@@ -22,9 +22,9 @@ func NewMStorage(dsn string) (*MStorage, *sql.DB, error) {
 }
 
 // List Products
-func (m *MStorage) ListProducts() (*[]Services.Product, error) {
-	var product Services.Product
-	var products []Services.Product
+func (m *MStorage) ListProducts() (*[]services.Product, error) {
+	var product services.Product
+	var products []services.Product
 	list, err := m.client.Query("SELECT * FROM products")
 	errHandle(err, "list product query")
 	for list.Next() {
@@ -38,7 +38,7 @@ func (m *MStorage) ListProducts() (*[]Services.Product, error) {
 }
 
 // Show Cart
-func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, float64, error) {
+func (m *MStorage) ShowBasket(idCustomer int) (*[]services.Basket, float64, error) {
 	queryString := "Select baskets.idBasket,baskets.idCustomer, products.idProduct, products.productName, " +
 		"products.productPrice,products.productVat,baskets.proNum, baskets.productTotalPrice " +
 		"From baskets " +
@@ -48,8 +48,8 @@ func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, float64, erro
 	show, err := m.client.Query(queryString, idCustomer)
 	errHandle(err, "show cart list query")
 
-	var basket Services.Basket
-	var basketProduct []Services.Basket
+	var basket services.Basket
+	var basketProduct []services.Basket
 	var totalPay float64
 	var campaign1 float64
 	var campaign2 float64
@@ -184,7 +184,7 @@ func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, float64, erro
 
 // read from baskets table
 func (m *MStorage) HaveProductNumber(idCustomer, idProduct int) (bool, int, error) {
-	var basket Services.Basket
+	var basket services.Basket
 	haveProduct := false
 	checkProduct, err := m.client.Query("Select proNum From baskets Where idProduct = ? and idcustomer = ?", idProduct, idCustomer)
 	errHandle(err, "check product from basket query")
@@ -203,7 +203,7 @@ func (m *MStorage) HaveProductNumber(idCustomer, idProduct int) (bool, int, erro
 
 // read from products table
 func (m *MStorage) FindProductPrice(idProduct int) (float64, error) {
-	var product Services.Product
+	var product services.Product
 	haveProductID := false
 	checkID, err := m.client.Query("select idProduct from products")
 	errHandle(err, "check product id from products, query")
@@ -240,7 +240,7 @@ func (m *MStorage) AddBasket(idCustomer, idProduct, productNum int, productTotal
 
 // add to cart in row
 func (m *MStorage) AddCartItem(idCustomer, idProduct, productNum int) error {
-	var basket Services.Basket
+	var basket services.Basket
 	addCartPro, err := m.client.Query("Select proNum From baskets Where idProduct = ? and idcustomer = ?", idProduct, idCustomer)
 	errHandle(err, "add cart item pronum query")
 	for addCartPro.Next() {
@@ -278,7 +278,7 @@ func (m *MStorage) DeleteRow(idCustomer, idProduct int) error {
 
 // delete cart in row
 func (m *MStorage) DeleteCartItem(idCustomer, idProduct, productNum int) error {
-	var basket Services.Basket
+	var basket services.Basket
 
 	deleteProNum, err := m.client.Query("Select proNum From baskets Where idProduct = ? and idcustomer = ?", idProduct, idCustomer)
 	errHandle(err, "delete cart item pronum query")
@@ -298,11 +298,11 @@ func (m *MStorage) DeleteCartItem(idCustomer, idProduct, productNum int) error {
 }
 
 // sale
-func (m *MStorage) Sale(idCustomer int) (*[]Services.Sale, float64, error) {
+func (m *MStorage) Sale(idCustomer int) (*[]services.Sale, float64, error) {
 	var sumOrder float64
-	var basket Services.Basket
-	var sale Services.Sale
-	var saleProduct []Services.Sale
+	var basket services.Basket
+	var sale services.Sale
+	var saleProduct []services.Sale
 	var totalPay float64
 	var campaignOrderNumber int
 
@@ -322,7 +322,9 @@ func (m *MStorage) Sale(idCustomer int) (*[]Services.Sale, float64, error) {
 	err = saleTotalPrice.Scan(&sumOrder)
 	errHandle(err, "sale find product total price scan")
 
-	if sumOrder > Services.Limit4sales {
+	Limit4sales := services.GetLimit4sales()
+
+	if sumOrder > float64(Limit4sales) {
 		campaignOrderNumber++
 	}
 	if campaignOrderNumber == 5 {
