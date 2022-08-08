@@ -42,7 +42,7 @@ type PStorage interface {
 // campaign 1 = check 4 sales and VAT
 func (basket *Basket) Campaign1(campaignOrderNumber int) float64 {
 	var campaign1 float64
-	if campaignOrderNumber == 3 && basket.ProductVAT != 1 {
+	if campaignOrderNumber == 4 && basket.ProductVAT != 1 {
 		if basket.ProductVAT == 18 {
 			campaign1 = basket.ProductPrice * float64(basket.ProductNum) * 0.85
 		} else {

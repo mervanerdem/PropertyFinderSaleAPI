@@ -66,29 +66,26 @@ func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, float64, erro
 			&basket.Product.ProductPrice, &basket.Product.ProductVAT, &basket.ProductNum, &basket.ProductTotalPrice)
 		errHandle(err, "show cart list scan")
 
-		rowCheck, err := m.client.Exec("select campaignOrderNumber from sales where idCustomer = ? ORDER BY saleDate DESC LIMIT 1;", idCustomer)
-		errHandle(err, "campaign order number is have any row")
-		affectRow, err := rowCheck.RowsAffected()
-		errHandle(err, "campaign order number is have any row 2")
-		if affectRow > 0 {
-			//campaign 1
-			campOrdNum, err := m.client.Query("select campaignOrderNumber from sales where idCustomer = ? ORDER BY saleDate DESC LIMIT 1;", idCustomer)
-			errHandle(err, "campaign 1 query")
-			campOrdNum.Next()
+		//campaign 1
+		campOrdNum, err := m.client.Query("select campaignOrderNumber from sales where idCustomer = ? ORDER BY saleDate DESC LIMIT 1;", idCustomer)
+		errHandle(err, "campaign 1 query")
+		checkHaveRow := campOrdNum.Next()
+		if checkHaveRow {
 			err = campOrdNum.Scan(&campaignOrderNumber)
 			errHandle(err, "campaign 1 scan 1")
+		}
 
-			//campaign 3
-			currentTime := time.Now()
-			now := currentTime.AddDate(0, -1, 0)
-			lastMonth := now.Format("2006.01.02 15:04:05")
+		//campaign 3
+		currentTime := time.Now()
+		now := currentTime.AddDate(0, -1, 0)
+		lastMonth := now.Format("2006.01.02 15:04:05")
 
-			proTotPri, err := m.client.Query("select Sum(productTotalPrice)  from sales where idCustomer = ? and saleDate > ?", basket.CustomerID, lastMonth)
-			errHandle(err, "product total price query 1")
-			for proTotPri.Next() {
-				err = proTotPri.Scan(&lastSales)
-				errHandle(err, "product total price scan 1")
-			}
+		proTotPri, err := m.client.Query("select Sum(productTotalPrice)  from sales where idCustomer = ? and saleDate > ?", basket.CustomerID, lastMonth)
+		errHandle(err, "product total price query 1")
+		checkHaveRow = proTotPri.Next()
+		if checkHaveRow {
+			err = proTotPri.Scan(&lastSales)
+			errHandle(err, "product total price scan 1")
 		}
 
 		campaign1 = basket.Campaign1(campaignOrderNumber)
@@ -102,11 +99,6 @@ func (m *MStorage) ShowBasket(idCustomer int) (*[]Services.Basket, float64, erro
 	}
 
 	finalCampaign := compareCampaign(campaignTotal1, campaignTotal2, campaignTotal3)
-
-	log.Println("campaign1:", campaignTotal1)
-	log.Println("campaign2:", campaignTotal2)
-	log.Println("campaign3:", campaignTotal3)
-	log.Println("final:", finalCampaign)
 
 	if finalCampaign == campaignTotal3 {
 		//campaign 3
@@ -311,33 +303,30 @@ func (m *MStorage) Sale(idCustomer int) (*[]Services.Sale, float64, error) {
 	var basket Services.Basket
 	var sale Services.Sale
 	var saleProduct []Services.Sale
-	var lastSaleDate string
 	var totalPay float64
+	var campaignOrderNumber int
 
-	rowCheck, err := m.client.Exec("select campaignOrderNumber from sales where idCustomer = ? ORDER BY saleDate DESC LIMIT 1;", idCustomer)
-	errHandle(err, "sale campaign order number is have any row")
-	affectRow, err := rowCheck.RowsAffected()
-	errHandle(err, "sale campaign order number is have any row")
-	campaignOrderNumber := 0
-	if affectRow > 0 {
-		campOrder, err := m.client.Query("select campaignOrderNumber,saleDate from sales where idCustomer = ? ORDER BY saleDate DESC LIMIT 1;", idCustomer)
-		errHandle(err, "sale campaign order number query")
-		campOrder.Next()
-		err = campOrder.Scan(&campaignOrderNumber, &lastSaleDate)
+	campOrder, err := m.client.Query("select campaignOrderNumber from sales where idCustomer = ? ORDER BY saleDate DESC LIMIT 1;", idCustomer)
+	errHandle(err, "sale campaign order number query")
+	campOrder.Scan()
+
+	checkHaveRow := campOrder.Next()
+	if checkHaveRow {
+		err = campOrder.Scan(&campaignOrderNumber)
 		errHandle(err, "sale campaign order number scan")
-
-		saleTotalPrice, err := m.client.Query("select Sum(productTotalPrice)  from sales where idCustomer = ? and saleDate = ?", idCustomer, lastSaleDate)
-		errHandle(err, "sale find product total price query")
-		saleTotalPrice.Next()
-		err = saleTotalPrice.Scan(&sumOrder)
-		errHandle(err, "sale find product total price scan")
 	}
+
+	saleTotalPrice, err := m.client.Query("select Sum(productTotalPrice)  from baskets where idCustomer = ?", idCustomer)
+	errHandle(err, "sale find product total price query")
+	saleTotalPrice.Next()
+	err = saleTotalPrice.Scan(&sumOrder)
+	errHandle(err, "sale find product total price scan")
 
 	if sumOrder > Services.Limit4sales {
 		campaignOrderNumber++
 	}
-	if campaignOrderNumber == 4 {
-		campaignOrderNumber = 0
+	if campaignOrderNumber == 5 {
+		campaignOrderNumber = 1
 	}
 
 	currentTime := time.Now()
@@ -350,7 +339,6 @@ func (m *MStorage) Sale(idCustomer int) (*[]Services.Sale, float64, error) {
 
 		err := saleFind.Scan(&basket.CustomerID, &basket.Product.ProductID, &basket.ProductNum, &basket.ProductTotalPrice)
 		errHandle(err, "sale find basket ")
-		log.Println("customer:", idCustomer, "basketcustomer:", basket.CustomerID)
 
 		_, err = m.client.Query("insert into sales (idCustomer, idProduct, proNum,productTotalPrice,saleDate,campaignOrderNumber) "+
 			"values (?, ?, ?,?,?,?);", basket.CustomerID, basket.Product.ProductID, basket.ProductNum, basket.ProductTotalPrice, saleDate, campaignOrderNumber)

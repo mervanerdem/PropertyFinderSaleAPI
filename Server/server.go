@@ -44,7 +44,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 			return
 		}
 
-		ShowBasket(ctx, idCustomer, storage)
+		ShowBasket(ctx, idCustomer, storage, 200)
 	})
 
 	//Add to cart
@@ -111,7 +111,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 				return
 			}
 		}
-		ShowBasket(ctx, idCustomer, storage)
+		ShowBasket(ctx, idCustomer, storage, 201)
 	})
 
 	//delete cart
@@ -176,7 +176,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 				return
 			}
 		}
-		ShowBasket(ctx, idCustomer, storage)
+		ShowBasket(ctx, idCustomer, storage, 201)
 	})
 
 	//sale
@@ -217,7 +217,7 @@ func NewServer(storage Services.PStorage) http.Handler {
 }
 
 // show cart
-func ShowBasket(ctx *gin.Context, idCustomer int, storage Services.PStorage) {
+func ShowBasket(ctx *gin.Context, idCustomer int, storage Services.PStorage, status int) {
 	basket2, totalPay, err := storage.ShowBasket(idCustomer)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, map[string]string{
@@ -225,7 +225,7 @@ func ShowBasket(ctx *gin.Context, idCustomer int, storage Services.PStorage) {
 		})
 		return
 	}
-	ctx.JSON(http.StatusCreated, map[string]string{
+	ctx.JSON(status, map[string]string{
 		"Message": "Successful",
 	})
 	jsonProduct, err := json.Marshal(*basket2)
@@ -236,7 +236,7 @@ func ShowBasket(ctx *gin.Context, idCustomer int, storage Services.PStorage) {
 		})
 		return
 	}
-	ctx.JSON(http.StatusOK, map[string]any{
+	ctx.JSON(status, map[string]any{
 		"Total Pay": totalPay,
 	})
 }
