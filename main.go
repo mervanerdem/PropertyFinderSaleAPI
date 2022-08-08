@@ -1,19 +1,27 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/mervanerdem/PropertyFinderSaleAPI/server"
+	"github.com/mervanerdem/PropertyFinderSaleAPI/services"
 	"github.com/mervanerdem/PropertyFinderSaleAPI/sqlConnection"
 	"log"
 	"net/http"
 )
 
 func main() {
-
-	storage, db, err := sqlConnection.NewMStorage("propertyfinder:password@tcp(localhost:3306)/pfsale")
+	dsn := services.GetDsn()
+	storage, db, err := sqlConnection.NewMStorage(dsn)
 	if err != nil {
 		log.Fatal("Configuration is wrong")
 	}
-	defer db.Close()
-	log.Fatal(http.ListenAndServe("localhost:8080", server.NewServer(storage)))
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+
+		}
+	}(db)
+	hostAddress := services.GetHost()
+	log.Fatal(http.ListenAndServe(hostAddress, server.NewServer(storage)))
 
 }

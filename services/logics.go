@@ -1,11 +1,5 @@
 package services
 
-import (
-	"github.com/spf13/viper"
-	"log"
-	"strconv"
-)
-
 type Product struct {
 	ProductID    int
 	ProductName  string
@@ -28,38 +22,6 @@ type Sale struct {
 	ProductTotalPrice float64
 	SaleDate          string
 	CampaignOrderNum  int
-}
-
-func viperConfigVariable(key string) string {
-	viper.AutomaticEnv()
-	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
-	if err != nil {
-		log.Fatalf("Error while reading config file %s", err)
-	}
-	value, ok := viper.Get(key).(string)
-	if !ok {
-		log.Fatalf("Invalid type assertion")
-	}
-	return value
-}
-
-func GetLimit4sales() int {
-	var get4Sales = viperConfigVariable("Limit4sales")
-	Limit4sales, err := strconv.Atoi(get4Sales)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return Limit4sales
-}
-
-func GetLimitMonthShop() int {
-	var getMonth = viperConfigVariable("LimitMonthShop")
-	LimitMonthShop, err := strconv.Atoi(getMonth)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return LimitMonthShop
 }
 
 type PStorage interface {
