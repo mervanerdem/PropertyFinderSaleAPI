@@ -23,7 +23,7 @@ func viperConfigVariable(key string) string {
 }
 
 func GetLimit4sales() int {
-	var get4Sales = viperConfigVariable("Limit4sales")
+	var get4Sales = viperConfigVariable("LIMIT_4_SALES")
 	Limit4sales, err := strconv.Atoi(get4Sales)
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +32,7 @@ func GetLimit4sales() int {
 }
 
 func GetLimitMonthShop() int {
-	var getMonth = viperConfigVariable("LimitMonthShop")
+	var getMonth = viperConfigVariable("LIMIT_MONTH_SHOP")
 	LimitMonthShop, err := strconv.Atoi(getMonth)
 	if err != nil {
 		log.Fatal(err)
@@ -40,10 +40,10 @@ func GetLimitMonthShop() int {
 	return LimitMonthShop
 }
 func GetDsn() string {
-	var getDnsFromConfig = viperConfigVariable("dsn")
+	var getDnsFromConfig = viperConfigVariable("DSN")
 	return getDnsFromConfig
 }
 func GetHost() string {
-	var getHostAddress = viperConfigVariable("hostName")
+	var getHostAddress = viperConfigVariable("HOST_NAME")
 	return getHostAddress
 }
