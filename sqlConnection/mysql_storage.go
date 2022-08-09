@@ -10,6 +10,18 @@ import (
 	"time"
 )
 
+type PStorage interface {
+	ListProducts() (*[]services.Product, error)
+	ShowBasket(id int) (*[]services.Basket, float64, error)
+	HaveProductNumber(idCustomer, productID int) (bool, int, error)
+	FindProductPrice(idProduct int) (float64, error)
+	AddBasket(idCustomer, idProduct, productNum int, productTotalPrice float64) error
+	AddCartItem(idCustomer, idProduct, productNum int) error
+	DeleteRow(idCustomer, idProduct int) error
+	DeleteCartItem(idCustomer, idProduct, productNum int) error
+	Sale(idCustomer int) (*[]services.Sale, float64, error)
+}
+
 type MStorage struct {
 	client *sql.DB
 }

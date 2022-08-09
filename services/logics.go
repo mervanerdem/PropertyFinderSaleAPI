@@ -24,18 +24,6 @@ type Sale struct {
 	CampaignOrderNum  int
 }
 
-type PStorage interface {
-	ListProducts() (*[]Product, error)
-	ShowBasket(id int) (*[]Basket, float64, error)
-	HaveProductNumber(idCustomer, productID int) (bool, int, error)
-	FindProductPrice(idProduct int) (float64, error)
-	AddBasket(idCustomer, idProduct, productNum int, productTotalPrice float64) error
-	AddCartItem(idCustomer, idProduct, productNum int) error
-	DeleteRow(idCustomer, idProduct int) error
-	DeleteCartItem(idCustomer, idProduct, productNum int) error
-	Sale(idCustomer int) (*[]Sale, float64, error)
-}
-
 // campaign 1 = check 4 sales and VAT
 func (basket *Basket) Campaign1(campaignOrderNumber int) float64 {
 	var campaign1 float64
